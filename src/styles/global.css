@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Lato";
+  src: url("/fonts/Lato.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  ascent-override: 95%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+  size-adjust: 105%;
+}
+
+@theme {
+  --font-sans: "Lato", system-ui, sans-serif;
+  --color-corporate-dark: #0f172a;
+  --color-corporate-primary: #1e3a8a;
+  --color-corporate-accent: #0284c7;
+  --color-deep-blue: #172554;
+  --color-corporate-light: #e0f2fe;
+  --color-corporate-surface: #ffffff;
+  --color-corporate-bg: #f8fafc;
+  --color-corporate-border: #e2e8f0;
+}

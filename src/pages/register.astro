@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+if (Astro.locals.userId) return Astro.redirect('/links');
+---
+
+<Layout title="Daftar Akun">
+  <main class="max-w-sm mx-auto pt-24 px-4">
+    <form id="f" class="bg-corporate-surface border border-corporate-border rounded-md p-6 space-y-4">
+      <h1 class="text-xl font-bold text-corporate-primary">Daftar Akun SMCL</h1>
+      <p class="text-sm text-corporate-primary">( Sistem Manajemen Catatan dan Links )</p>
+      <input name="username" placeholder="Username" required
+        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <input name="password" type="password" placeholder="Password" required
+        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <input name="invite" placeholder="Kode organisasi" required autocomplete="off"
+        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <p id="err" class="text-sm text-red-600"></p>
+      <button class="w-full bg-corporate-primary text-white rounded-md py-2 font-bold">Daftar!</button>
+      <a href="/login" class="block text-center text-sm text-corporate-accent">Sudah punya akun?</a>
+    </form>
+  </main>
+</Layout>
+
+<script>
+  const f = document.getElementById('f') as HTMLFormElement;
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = Object.fromEntries(new FormData(f));
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) location.href = '/links';
+    else document.getElementById('err')!.textContent = (await res.json()).error;
+  });
+</script>
