@@ -1,0 +1,7 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ChatManager from '../components/ChatManager.vue';
+---
+<Layout title="Chat CatLink">
+  <ChatManager client:only="vue" />
+</Layout>
