@@ -8,7 +8,7 @@ export const PUT: APIRoute = async ({ locals, request }) => {
   }
   // Hanya boleh diisi sekali; tidak bisa ditimpa
   const res = await env.DB
-    .prepare('UPDATE users SET vault_check = ? WHERE id = ? AND vault_check IS NULL')
+    .prepare('UPDATE users SET vault_check = ?, public_key = NULL, wrapped_private_key = NULL WHERE id = ? AND vault_check IS NULL')
     .bind(JSON.stringify(vault_check), locals.userId)
     .run();
   return res.meta.changes ? Response.json({ ok: true }) : new Response('Already set', { status: 409 });

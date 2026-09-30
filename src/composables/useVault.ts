@@ -1,13 +1,47 @@
 import { computed, shallowRef } from 'vue';
-import { deriveVaultKey, encryptData, decryptData } from './useCrypto';
+import { deriveVaultKey, encryptData, decryptData, generateIdentity, importPrivateKey } from './useCrypto';
 
 export interface Entry { title: string; url?: string; body?: string }
 export interface VaultItem { id: string; updated_at: string; data: Entry }
 
 const key = shallowRef<CryptoKey | null>(null);
+
+export interface Identity {
+  userId: string;
+  username: string;
+  publicKey: string;
+  privateKey: CryptoKey;
+  convKeys: Map<string, CryptoKey>; // cache kunci percakapan, hilang bersama identitas
+}
+export const identity = shallowRef<Identity | null>(null);
+
+async function setupIdentity(me: any, vaultKey: CryptoKey) {
+  if (!me.public_key || !me.wrapped_private_key) {
+    const created = await generateIdentity(vaultKey);
+    const res = await fetch('/api/identity', json('PUT', {
+      public_key: created.publicKey,
+      wrapped_private_key: created.wrappedPrivateKey,
+    }));
+    if (res.ok) {
+      me = { ...me, public_key: created.publicKey, wrapped_private_key: JSON.stringify(created.wrappedPrivateKey) };
+    } else if (res.status === 409) {
+      me = await api('/api/me'); // tab lain sudah membuatnya lebih dulu
+    } else {
+      throw new Error(`Gagal menyimpan kunci chat (${res.status}).`);
+    }
+  }
+  identity.value = {
+    userId: me.id,
+    username: me.username,
+    publicKey: me.public_key,
+    privateKey: await importPrivateKey(JSON.parse(me.wrapped_private_key), vaultKey),
+    convKeys: new Map(),
+  };
+}
+
 export const isUnlocked = computed(() => key.value !== null);
 
-async function api(path: string, init?: RequestInit) {
+export async function api(path: string, init?: RequestInit) {
   const res = await fetch(path, init);
   if (res.status === 401) {
     location.href = '/login';
@@ -17,7 +51,7 @@ async function api(path: string, init?: RequestInit) {
   return res.json();
 }
 
-const json = (method: string, body: unknown): RequestInit => ({
+export const json = (method: string, body: unknown): RequestInit => ({
   method,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
@@ -40,14 +74,25 @@ export async function unlock(passphrase: string) {
       throw new Error('Passphrase salah.');
     }
   } else {
-    // Pertama kali: simpan kode uji
     const vault_check = await encryptData({ ok: true }, k);
     await api('/api/vault-check', json('PUT', { vault_check }));
+    me.public_key = null; // server mengosongkan identitas lama pada langkah ini
+    me.wrapped_private_key = null;
   }
   key.value = k;
+
+  try {
+    await setupIdentity(me, k);
+  } catch (e) {
+    console.error('Gagal menyiapkan kunci chat:', e);
+    identity.value = null; // tidak menghalangi fitur link dan catatan
+  }
 }
 
-export const lock = () => { key.value = null; };
+export const lock = () => {
+  key.value = null;
+  identity.value = null;
+};
 
 export async function listItems(type: 'link' | 'note'): Promise<VaultItem[]> {
   const rows = await api(`/api/vault?type=${type}`);

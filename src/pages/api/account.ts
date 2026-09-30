@@ -25,6 +25,7 @@ export const DELETE: APIRoute = async ({ locals, request, cookies }) => {
   await db.batch([
     db.prepare('DELETE FROM vault_items WHERE user_id = ?').bind(locals.userId),
     db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(locals.userId),
+    db.prepare('DELETE FROM messages WHERE sender_id = ? OR recipient_id = ?').bind(locals.userId, locals.userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(locals.userId),
   ]);
 

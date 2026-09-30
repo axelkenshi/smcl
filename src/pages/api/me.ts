@@ -4,7 +4,7 @@ import { env } from 'cloudflare:workers';
 
 export const GET: APIRoute = async ({ locals }) => {
   const user = await env.DB
-    .prepare('SELECT username, kdf_salt, vault_check FROM users WHERE id = ?')
+    .prepare('SELECT id, username, kdf_salt, vault_check, public_key, wrapped_private_key FROM users WHERE id = ?')
     .bind(locals.userId)
     .first();
   return Response.json(user);
