@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { Plus, Pencil, Trash2, ExternalLink } from '@lucide/vue';
+import { Plus, Pencil, Trash2, ExternalLink, QrCode } from '@lucide/vue';
 import Navbar from './Navbar.vue';
 import PassphraseModal from './PassphraseModal.vue';
+import QrModal from './QrModal.vue';
 import {
   isUnlocked, isVaultNew, unlock, lock, listItems, createItem, updateItem, deleteItem,
   type VaultItem, type Entry,
@@ -11,6 +12,8 @@ import { openDeleteDialog } from '../composables/useAccountDialog';
 
 const props = defineProps<{ type: 'link' | 'note' }>();
 const isLink = props.type === 'link';
+
+const qrItem = ref<VaultItem | null>(null);
 
 const isNew = ref(false);
 const loading = ref(false);
@@ -122,6 +125,10 @@ async function remove(id: string) {
             <p v-if="item.data.body" class="text-sm text-slate-600 whitespace-pre-wrap mt-1">{{ item.data.body }}</p>
           </div>
           <div class="flex gap-1 shrink-0">
+            <button v-if="isLink" @click="qrItem = item"
+              class="p-2 rounded-md hover:bg-corporate-light" title="Buat kode QR" aria-label="Buat kode QR">
+              <QrCode :size="16" />
+            </button>
             <button @click="openForm(item)" class="p-2 rounded-md hover:bg-corporate-light" title="Edit"><Pencil :size="16" /></button>
             <button @click="remove(item.id)" class="p-2 rounded-md hover:bg-red-50 text-red-600" title="Hapus"><Trash2 :size="16" /></button>
           </div>
@@ -149,5 +156,8 @@ async function remove(id: string) {
         </div>
       </form>
     </div>
+
+    <QrModal v-if="qrItem?.data.url" :title="qrItem.data.title" :url="qrItem.data.url"
+      @close="qrItem = null" />
   </div>
 </template>

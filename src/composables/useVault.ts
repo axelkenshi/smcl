@@ -132,3 +132,11 @@ export async function deleteAccount(password: string) {
   lock();
   location.href = '/login';
 }
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const res = await fetch('/api/password', json('PUT', { currentPassword, newPassword }));
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Permintaan gagal (${res.status}).`);
+  }
+}

@@ -1,6 +1,12 @@
 ---
 import '../styles/global.css';
-const { title = 'Sistem Manajemen Catatan & Link' } = Astro.props;
+
+interface Props {
+  title?: string;
+  customBackground?: boolean;
+}
+
+const { title = 'Sistem Manajemen Catatan & Link', customBackground = false} = Astro.props;
 ---
 <!doctype html>
 <html lang="id">
@@ -13,9 +19,17 @@ const { title = 'Sistem Manajemen Catatan & Link' } = Astro.props;
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="SMCL" />
     <link rel="manifest" href="/site.webmanifest" />
+    {customBackground && <link rel="preload" as="image" href="/banner.webp" />}
     <title>{title} | SMCL</title>
   </head>
-  <body class="bg-corporate-bg text-corporate-dark font-sans min-h-dvh">
+  <body class="relative isolate bg-corporate-bg text-corporate-dark font-sans min-h-dvh">
+    {customBackground && (
+      <>
+        <div aria-hidden="true"
+          class="fixed inset-0 -z-20 scale-105 bg-cover bg-center bg-no-repeat bg-[url('/banner.webp')] blur-sm"></div>
+        <div aria-hidden="true" class="fixed inset-0 -z-10 bg-corporate-dark/20"></div>
+      </>
+    )}
     <slot />
   </body>
 </html>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Link as LinkIcon, StickyNote, MessageSquare, Lock, LogOut, UserX } from '@lucide/vue';
+import { Link as LinkIcon, StickyNote, MessageSquare, Lock, LogOut, UserX, KeyRound } from '@lucide/vue';
 import { isUnlocked, lock, logout } from '../composables/useVault';
-import { showDeleteDialog, openDeleteDialog, closeDeleteDialog } from '../composables/useAccountDialog';
+import { showDeleteDialog, openDeleteDialog, closeDeleteDialog, showPasswordDialog, openPasswordDialog, closePasswordDialog, } from '../composables/useAccountDialog';
 import DeleteAccountModal from './DeleteAccountModal.vue';
+import ChangePasswordModal from './ChangePasswordModal.vue';
 
 defineProps<{ active: 'links' | 'notes' | 'chat'; wide?: boolean }>();
 
@@ -21,7 +22,7 @@ const btn = 'flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-whi
         <nav class="flex gap-1 font-bold">
           <a v-for="t in tabs" :key="t.id" :href="t.href" :title="t.label"
             :class="['flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md',
-              active === t.id ? 'bg-corporate-accent' : 'hover:bg-white/10']">
+              active === t.id ? 'bg-deep-blue' : 'hover:bg-white/10']">
             <component :is="t.icon" :size="16" />
             <span class="hidden sm:inline">{{ t.label }}</span>
           </a>
@@ -29,6 +30,9 @@ const btn = 'flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-whi
         <div class="flex items-center gap-1 text-sm">
           <button v-if="isUnlocked" @click="lock" title="Kunci brankas" :class="btn">
             <Lock :size="16" /><span class="hidden sm:inline">Kunci</span>
+          </button>
+          <button @click="openPasswordDialog" title="Ganti password" :class="btn">
+            <KeyRound :size="16" /><span class="hidden sm:inline">Ganti password</span>
           </button>
           <button @click="openDeleteDialog" title="Hapus akun"
             class="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-red-500/30">
@@ -41,5 +45,6 @@ const btn = 'flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-whi
       </div>
     </header>
     <DeleteAccountModal v-if="showDeleteDialog" @close="closeDeleteDialog" />
+    <ChangePasswordModal v-if="showPasswordDialog" @close="closePasswordDialog" />
   </div>
 </template>
