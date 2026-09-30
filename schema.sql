@@ -12,8 +12,23 @@ CREATE TABLE IF NOT EXISTS users (
     password_salt TEXT NOT NULL,
     kdf_salt TEXT NOT NULL,            -- salt untuk kunci brankas (E2EE)
     vault_check TEXT,
+    public_key TEXT,                   -- kunci publik ECDH (base64, boleh dilihat server)
+    wrapped_private_key TEXT,          -- kunci privat ECDH, terenkripsi kunci brankas
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    conv_id TEXT NOT NULL,             -- dua user_id terurut, dihitung server
+    sender_id TEXT NOT NULL,
+    recipient_id TEXT NOT NULL,
+    payload TEXT NOT NULL,             -- { ciphertext, iv }
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_msg_conv ON messages(conv_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_msg_created ON messages(created_at);
 
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,

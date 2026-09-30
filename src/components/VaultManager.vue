@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import {
-  Link as LinkIcon, StickyNote, Lock, LogOut, Plus, Pencil, Trash2, ExternalLink, UserX,
-} from '@lucide/vue';
+import { Plus, Pencil, Trash2, ExternalLink } from '@lucide/vue';
+import Navbar from './Navbar.vue';
 import PassphraseModal from './PassphraseModal.vue';
 import {
-  isUnlocked, isVaultNew, unlock, lock, listItems, createItem, updateItem,
-  deleteItem, deleteAccount, logout, type VaultItem, type Entry,
+  isUnlocked, isVaultNew, unlock, lock, listItems, createItem, updateItem, deleteItem,
+  type VaultItem, type Entry,
 } from '../composables/useVault';
+import { openDeleteDialog } from '../composables/useAccountDialog';
 
 const props = defineProps<{ type: 'link' | 'note' }>();
 const isLink = props.type === 'link';
@@ -88,60 +88,13 @@ async function remove(id: string) {
   await deleteItem(id);
   await load();
 }
-
-const navCls = (active: boolean) =>
-  ['flex items-center gap-1 px-3 py-1.5 rounded-md', active ? 'bg-deep-blue' : 'hover:bg-white/10'];
-
-// State dan Fungsi delete account
-const showDelete = ref(false);
-const delPassword = ref('');
-const delError = ref('');
-const delLoading = ref(false);
-
-function openDelete() {
-  delPassword.value = '';
-  delError.value = '';
-  showDelete.value = true;
-}
-
-async function confirmDelete() {
-  delLoading.value = true;
-  delError.value = '';
-  try {
-    await deleteAccount(delPassword.value); // sukses = otomatis pindah ke /login
-  } catch (e: any) {
-    delError.value = e.message;
-  } finally {
-    delLoading.value = false;
-  }
-}
 </script>
 
 <template>
   <div>
+    <Navbar :active="isLink ? 'links' : 'notes'" />
     <PassphraseModal v-if="!isUnlocked" :is-new="isNew" :error="error" :loading="loading"
-      @submit="handleUnlock" @forgot="openDelete" />
-
-    <header class="bg-corporate-primary text-white">
-      <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-        <nav class="flex gap-1 font-bold">
-          <a href="/links" :class="navCls(isLink)"><LinkIcon :size="16" /> Link</a>
-          <a href="/notes" :class="navCls(!isLink)"><StickyNote :size="16" /> Catatan</a>
-        </nav>
-        <div class="flex items-center gap-2 text-sm">
-          <button v-if="isUnlocked" @click="lock" class="flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-white/10">
-            <Lock :size="16" /> Kunci
-          </button>
-          <button @click="openDelete"
-            class="flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-red-500/30">
-            <UserX :size="16" /> Hapus akun
-          </button>
-          <button @click="logout" class="flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-white/10">
-            <LogOut :size="16" /> Keluar
-          </button>
-        </div>
-      </div>
-    </header>
+      @submit="handleUnlock" @forgot="openDeleteDialog" />
 
     <main v-if="isUnlocked" class="max-w-4xl mx-auto px-4 py-6 space-y-4">
       <div class="flex gap-2">
@@ -193,29 +146,6 @@ async function confirmDelete() {
         <div class="flex justify-end gap-2">
           <button type="button" @click="showForm = false" class="px-4 py-2 rounded-md border border-corporate-border">Batal</button>
           <button class="px-4 py-2 rounded-md bg-corporate-primary text-white font-bold">Simpan</button>
-        </div>
-      </form>
-    </div>
-
-    <div v-if="showDelete" class="fixed inset-0 bg-corporate-dark/60 flex items-center justify-center p-4 z-[60]">
-      <form @submit.prevent="confirmDelete"
-        class="bg-corporate-surface border border-corporate-border rounded-md p-6 w-full max-w-sm space-y-3">
-        <h2 class="text-lg font-bold text-red-600">Hapus akun</h2>
-        <p class="text-sm text-slate-600">
-          Seluruh link dan catatan Anda akan dihapus <b>permanen</b> dan tidak bisa dipulihkan.
-          Masukkan password login untuk melanjutkan.
-        </p>
-        <input v-model="delPassword" type="password" placeholder="Password login" required
-          autocomplete="current-password"
-          class="w-full border border-corporate-border rounded-md px-3 py-2" />
-        <p v-if="delError" class="text-sm text-red-600">{{ delError }}</p>
-        <div class="flex justify-end gap-2">
-          <button type="button" @click="showDelete = false"
-            class="px-4 py-2 rounded-md border border-corporate-border">Batal</button>
-          <button :disabled="delLoading"
-            class="px-4 py-2 rounded-md bg-red-600 text-white font-bold disabled:opacity-60">
-            {{ delLoading ? 'Menghapus...' : 'Hapus permanen' }}
-          </button>
         </div>
       </form>
     </div>
