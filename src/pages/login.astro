@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PasswordField from '../components/PasswordField.astro';
+
 if (Astro.locals.userId) return Astro.redirect('/links');
 ---
 
@@ -10,8 +12,7 @@ if (Astro.locals.userId) return Astro.redirect('/links');
       <p class="text-sm text-corporate-primary">( Sistem Manajemen Catatan dan Links )</p>
       <input name="username" placeholder="Username" required
         class="w-full border border-corporate-border rounded-md px-3 py-2" />
-      <input name="password" type="password" placeholder="Password" required
-        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <PasswordField name="password" placeholder="Password" autocomplete="current-password" />
       <p id="err" class="text-sm text-red-600"></p>
       <button class="w-full bg-corporate-primary text-white rounded-md py-2 font-bold">Masuk</button>
       <a href="/register" class="block text-center text-sm text-corporate-accent">Belum punya akun?</a>

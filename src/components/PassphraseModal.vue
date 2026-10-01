@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Lock, LogOut, User } from '@lucide/vue';
+import PasswordInput from './PasswordInput.vue';
 
 const props = defineProps<{ isNew: boolean; error: string; loading: boolean; username: string }>();
 const emit = defineEmits<{ submit: [passphrase: string]; forgot: []; logout: [] }>();
@@ -59,11 +60,11 @@ function onSubmit() {
         menjadi kalimat yang mudah Anda ingat tetapi tidak umum.
       </p>
 
-      <input v-model="pass" type="password" placeholder="Passphrase brankas" autofocus required
-        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <PasswordInput v-model="pass" label="passphrase" placeholder="Passphrase brankas" autofocus required
+        :autocomplete="isNew ? 'new-password' : 'off'" />
       <p v-if="isNew && strength" class="text-xs" :class="strength.cls">{{ strength.text }}</p>
-      <input v-if="isNew" v-model="pass2" type="password" placeholder="Ulangi passphrase" required
-        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <PasswordInput v-if="isNew" v-model="pass2" label="passphrase" placeholder="Ulangi passphrase" required
+        autocomplete="new-password" />
 
       <p v-if="localError || error" class="text-sm text-red-600">{{ localError || error }}</p>
 

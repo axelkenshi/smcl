@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { deleteAccount } from '../composables/useVault';
+import PasswordInput from './PasswordInput.vue';
 
 const emit = defineEmits<{ close: [] }>();
 const password = ref('');
@@ -29,9 +30,8 @@ async function confirm() {
         Seluruh link, catatan, dan pesan Anda akan dihapus <b>permanen</b> dan tidak bisa dipulihkan.
         Masukkan password login untuk melanjutkan.
       </p>
-      <input v-model="password" type="password" placeholder="Password login" required
-        autocomplete="current-password"
-        class="w-full border border-corporate-border rounded-md px-3 py-2" />
+      <PasswordInput v-model="password" label="password" placeholder="Password login"
+        required autocomplete="current-password" />
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
       <div class="flex justify-end gap-2">
         <button type="button" @click="emit('close')"

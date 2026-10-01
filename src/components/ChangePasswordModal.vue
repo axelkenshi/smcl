@@ -2,6 +2,8 @@
 import { ref } from 'vue';
 import { changePassword } from '../composables/useVault';
 
+import PasswordInput from './PasswordInput.vue';
+
 const emit = defineEmits<{ close: [] }>();
 const current = ref('');
 const next = ref('');
@@ -48,15 +50,12 @@ async function submit() {
           Ini hanya mengganti password untuk masuk. Passphrase brankas dan seluruh datanya tidak berubah.
           Mohon jangan gunakan passphrase Anda sebagai password login.
         </p>
-        <input v-model="current" type="password" placeholder="Password saat ini" required
-          autocomplete="current-password"
-          class="w-full border border-corporate-border rounded-md px-3 py-2" />
-        <input v-model="next" type="password" placeholder="Password baru (min. 8 karakter)" required
-          autocomplete="new-password"
-          class="w-full border border-corporate-border rounded-md px-3 py-2" />
-        <input v-model="repeat" type="password" placeholder="Ulangi password baru" required
-          autocomplete="new-password"
-          class="w-full border border-corporate-border rounded-md px-3 py-2" />
+        <PasswordInput v-model="current" label="password saat ini" placeholder="Password saat ini"
+          required autocomplete="current-password" />
+        <PasswordInput v-model="next" label="password baru" placeholder="Password baru (min. 8 karakter)"
+          required autocomplete="new-password" />
+        <PasswordInput v-model="repeat" label="password baru" placeholder="Ulangi password baru"
+          required autocomplete="new-password" />
         <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
         <div class="flex justify-end gap-2">
           <button type="button" @click="emit('close')"
