@@ -18,6 +18,7 @@
 			"binding": "DB",
 			"database_name": "smcl-db",
 			"database_id": "d2151292-5958-4abe-b752-239b0270c675",
+			"migrations_dir": "../../migrations",
 			// "remote": true
 		}
 	]
