@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ChatManager from '../components/ChatManager.vue';
+import AppShell from '../components/AppShell.vue';
 ---
-<Layout title="Chat CatLink">
-  <ChatManager client:only="vue" />
+
+<Layout title="Chat">
+  <AppShell initialTab="chat" client:only="vue" />
 </Layout>

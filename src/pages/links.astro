@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import VaultManager from '../components/VaultManager.vue';
+import AppShell from '../components/AppShell.vue';
 ---
+
 <Layout title="Brankas Link">
-  <VaultManager type="link" client:only="vue" />
+  <AppShell initialTab="links" client:only="vue" />
 </Layout>

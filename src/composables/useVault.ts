@@ -1,4 +1,4 @@
-import { computed, shallowRef } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import { deriveVaultKey, encryptData, decryptData, generateIdentity, importPrivateKey } from './useCrypto';
 
 export interface Entry { title: string; url?: string; body?: string }
@@ -57,10 +57,18 @@ export const json = (method: string, body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+export const accountName = ref('');
+
+async function loadAccount() {
+  const me = await api('/api/me');
+  accountName.value = me?.username ?? '';
+  return me;
+}
+
 // Brankas dianggap "baru" kalau kode uji passphrase belum pernah dibuat
 export async function isVaultNew() {
-  const me = await api('/api/me');
-  return !me.vault_check;
+  const me = await loadAccount();
+  return !me?.vault_check;
 }
 
 export async function unlock(passphrase: string) {
@@ -80,7 +88,8 @@ export async function unlock(passphrase: string) {
     me.wrapped_private_key = null;
   }
   key.value = k;
-
+  armIdleLock();
+  
   try {
     await setupIdentity(me, k);
   } catch (e) {
@@ -93,6 +102,21 @@ export const lock = () => {
   key.value = null;
   identity.value = null;
 };
+
+// Sekarang kunci hidup selama tab terbuka (idle), jadi jendela waktu "brankas terbuka" lebih panjang
+const IDLE_MS = 60 * 60_000;   // 60 menit, sesuaikan
+let idleTimer: number | undefined;
+
+function armIdleLock() {
+  clearTimeout(idleTimer);
+  if (key.value) idleTimer = window.setTimeout(lock, IDLE_MS);
+}
+
+if (typeof window !== 'undefined') {
+  for (const ev of ['pointerdown', 'keydown', 'scroll']) {
+    window.addEventListener(ev, armIdleLock, { passive: true });
+  }
+}
 
 export async function listItems(type: 'link' | 'note'): Promise<VaultItem[]> {
   const rows = await api(`/api/vault?type=${type}`);

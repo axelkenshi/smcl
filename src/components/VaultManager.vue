@@ -1,22 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { Plus, Pencil, Trash2, ExternalLink, QrCode } from '@lucide/vue';
-import Navbar from './Navbar.vue';
-import PassphraseModal from './PassphraseModal.vue';
 import QrModal from './QrModal.vue';
 import {
-  isUnlocked, isVaultNew, unlock, lock, listItems, createItem, updateItem, deleteItem,
+  listItems, createItem, updateItem, deleteItem,
   type VaultItem, type Entry,
 } from '../composables/useVault';
-import { openDeleteDialog } from '../composables/useAccountDialog';
 
 const props = defineProps<{ type: 'link' | 'note' }>();
 const isLink = props.type === 'link';
 
 const qrItem = ref<VaultItem | null>(null);
 
-const isNew = ref(false);
-const loading = ref(false);
 const error = ref('');
 const items = ref<VaultItem[]>([]);
 const query = ref('');
@@ -33,25 +28,11 @@ const filtered = computed(() => {
 });
 
 onMounted(async () => {
-  try { isNew.value = await isVaultNew(); } catch (e: any) { error.value = e.message; }
+  try { await load(); } catch (e: any) { error.value = e.message; }
 });
 
 async function load() {
   items.value = await listItems(props.type);
-}
-
-async function handleUnlock(passphrase: string) {
-  loading.value = true;
-  error.value = '';
-  try {
-    await unlock(passphrase);
-    await load();
-  } catch (e: any) {
-    lock();
-    error.value = e.message;
-  } finally {
-    loading.value = false;
-  }
 }
 
 // Hanya izinkan http/https agar tidak ada href "javascript:..."
@@ -95,11 +76,10 @@ async function remove(id: string) {
 
 <template>
   <div>
-    <Navbar :active="isLink ? 'links' : 'notes'" />
-    <PassphraseModal v-if="!isUnlocked" :is-new="isNew" :error="error" :loading="loading"
-      @submit="handleUnlock" @forgot="openDeleteDialog" />
 
-    <main v-if="isUnlocked" class="max-w-4xl mx-auto px-4 py-6 space-y-4">
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-4">
+      <p v-if="error && !showForm" class="text-sm text-red-600">{{ error }}</p>
+      
       <div class="flex gap-2">
         <input v-model="query" placeholder="Cari..."
           class="flex-1 border border-corporate-border rounded-md px-3 py-2 bg-corporate-surface" />

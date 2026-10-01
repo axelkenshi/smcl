@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { ArrowLeft, Send, ShieldCheck, MessageSquare } from '@lucide/vue';
-import Navbar from './Navbar.vue';
-import PassphraseModal from './PassphraseModal.vue';
-import { isUnlocked, isVaultNew, unlock, lock, identity } from '../composables/useVault';
-import { openDeleteDialog } from '../composables/useAccountDialog';
+import { isUnlocked, identity } from '../composables/useVault';
 import {
   listUsers, listConversations, fetchMessages, sendMessage, getSafetyCode,
   type Peer, type ChatMessage, type Conversation,
 } from '../composables/useChat';
 import { MESSAGE_TTL_MS } from '../lib/chat';
 
-const isNew = ref(false);
-const loading = ref(false);
-const error = ref('');
 const users = ref<Peer[]>([]);
 const conversations = ref<Conversation[]>([]);
 const convLoaded = ref(false);
@@ -145,29 +139,22 @@ watch(isUnlocked, (unlocked) => {
 
 onMounted(async () => {
   document.addEventListener('visibilitychange', onVisibility);
-  try { isNew.value = await isVaultNew(); } catch (e: any) { error.value = e.message; }
+  if (!identity.value) return;          // template menampilkan "Kunci chat belum siap"
+  try {
+    users.value = await listUsers();
+    await refreshConversations();
+    startPolling();
+  } catch (e: any) {
+    chatError.value = e.message;
+  }
 });
+
 onUnmounted(() => {
   stopPolling();
   document.removeEventListener('visibilitychange', onVisibility);
 });
 
 // ---------- aksi ----------
-async function handleUnlock(passphrase: string) {
-  loading.value = true;
-  error.value = '';
-  try {
-    await unlock(passphrase);
-    users.value = await listUsers();
-    await refreshConversations();
-    startPolling();
-  } catch (e: any) {
-    lock();
-    error.value = e.message;
-  } finally {
-    loading.value = false;
-  }
-}
 
 function onPick(e: Event) {
   const el = e.target as HTMLSelectElement;
@@ -202,11 +189,8 @@ async function toggleCode() {
 
 <template>
   <div class="h-dvh flex flex-col">
-    <Navbar active="chat" wide />
-    <PassphraseModal v-if="!isUnlocked" :is-new="isNew" :error="error" :loading="loading"
-      @submit="handleUnlock" @forgot="openDeleteDialog" />
 
-    <div v-if="isUnlocked" class="flex flex-1 min-h-0">
+    <div class="flex flex-1 min-h-0">
       <p v-if="!identity" class="p-6 text-sm text-red-600">
         Kunci chat belum siap. Kunci lalu buka brankas lagi. Jika berulang, cek Console browser.
       </p>
@@ -277,7 +261,7 @@ async function toggleCode() {
 
             <div ref="listEl" class="flex-1 overflow-y-auto p-4 space-y-2">
               <p v-if="!messages.length" class="text-center text-sm text-slate-500 py-8">
-                Belum ada pesan. Pesan dihapus otomatis setelah 3 hari.
+                Belum ada pesan. Pesan dihapus otomatis setelah 5 hari.
               </p>
               <div v-for="m in messages" :key="m.id" :class="['flex', m.mine ? 'justify-end' : 'justify-start']">
                 <div :class="['max-w-[80%] rounded-md px-3 py-2 text-sm',

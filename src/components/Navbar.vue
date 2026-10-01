@@ -5,13 +5,23 @@ import { showDeleteDialog, openDeleteDialog, closeDeleteDialog, showPasswordDial
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import ChangePasswordModal from './ChangePasswordModal.vue';
 
-defineProps<{ active: 'links' | 'notes' | 'chat'; wide?: boolean }>();
+type Tab = 'links' | 'notes' | 'chat';
 
-const tabs = [
+defineProps<{ active: Tab; wide?: boolean }>();
+const emit = defineEmits<{ navigate: [tab: Tab] }>();
+
+const tabs: { id: Tab; href: string; label: string; icon: any }[] = [
   { id: 'links', href: '/links', label: 'Link', icon: LinkIcon },
   { id: 'notes', href: '/notes', label: 'Catatan', icon: StickyNote },
   { id: 'chat', href: '/chat', label: 'Chat', icon: MessageSquare },
 ];
+
+function onTab(e: MouseEvent, id: Tab) {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;  // biarkan buka tab baru
+  e.preventDefault();
+  emit('navigate', id);
+}
+
 const btn = 'flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-white/10';
 </script>
 
@@ -20,7 +30,7 @@ const btn = 'flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md hover:bg-whi
     <header class="bg-corporate-primary text-white">
       <div :class="['mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-2', wide ? '' : 'max-w-4xl']">
         <nav class="flex gap-1 font-bold">
-          <a v-for="t in tabs" :key="t.id" :href="t.href" :title="t.label"
+          <a v-for="t in tabs" :key="t.id" :href="t.href" :title="t.label" @click="onTab($event, t.id)"
             :class="['flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md',
               active === t.id ? 'bg-deep-blue' : 'hover:bg-white/10']">
             <component :is="t.icon" :size="16" />

@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import VaultManager from '../components/VaultManager.vue';
+import AppShell from '../components/AppShell.vue';
 ---
+
 <Layout title="Catatan">
-  <VaultManager type="note" client:only="vue" />
+  <AppShell initialTab="notes" client:only="vue" />
 </Layout>
